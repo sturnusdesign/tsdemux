@@ -51,7 +51,10 @@ uint64_t parse_u32(const uint8_t *bytes)
 
 uint64_t parse_u64(const uint8_t *bytes)
 {
-    uint64_t val = *((uint64_t*)bytes);
+//    uint64_t val = *((uint64_t*)bytes);
+//NOTE: causes crash on ARM4, likely alignment issue?
+    uint64_t val;
+    memcpy(&val, bytes, sizeof(uint64_t));
 #ifdef __BIG_ENDIAN__
     return val;
 #else
