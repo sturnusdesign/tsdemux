@@ -37,6 +37,12 @@
 #define TSD_MEM_PAGE_SIZE                       (1024)
 #define TSD_MAX_PID_REGS                        (16)
 
+// C++ support
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /**
  * @file
  * @ingroup tsdemux
@@ -47,6 +53,24 @@
 typedef struct TSDemuxContext TSDemuxContext;
 typedef struct TSDTable TSDTable;
 typedef struct TSDTableSection TSDTableSection;
+
+/**
+ * Event Id.
+ * The Id of all events that may occur during demux. 
+ * (Moved here because forward declaration not allowed on enum!)
+ */
+typedef enum TSDEventId {
+    TSD_EVENT_PAT                            = 0x0001,
+    TSD_EVENT_PMT                            = 0x0002,
+    TSD_EVENT_CAT                            = 0x0004,
+    TSD_EVENT_TSDT                           = 0x0008,
+    /// Unsupported TSDTable
+    TSD_EVENT_TABLE                          = 0x0010,
+    // User Registered PES data
+    TSD_EVENT_PES                            = 0x0020,
+    // User Registered Adaptionn Field Private Data
+    TSD_EVENT_ADAP_FIELD_PRV_DATA            = 0x0040,
+} TSDEventId;
 
 typedef enum TSDEventId TSDEventId;
 
@@ -349,22 +373,6 @@ typedef enum TSDPMTStreamType {
     TSD_PMT_STREAM_TYPE_ATSC_USER_PRIV               = 0xEB,
 } TSDPMTStreamType;
 
-/**
- * Event Id.
- * The Id of all events that may occur during demux.
- */
-typedef enum TSDEventId {
-    TSD_EVENT_PAT                            = 0x0001,
-    TSD_EVENT_PMT                            = 0x0002,
-    TSD_EVENT_CAT                            = 0x0004,
-    TSD_EVENT_TSDT                           = 0x0008,
-    /// Unsupported TSDTable
-    TSD_EVENT_TABLE                          = 0x0010,
-    // User Registered PES data
-    TSD_EVENT_PES                            = 0x0020,
-    // User Registered Adaptionn Field Private Data
-    TSD_EVENT_ADAP_FIELD_PRV_DATA            = 0x0040,
-} TSDEventId;
 
 /**
  * Registration Type.
@@ -1013,11 +1021,10 @@ TSDCode tsd_set_event_callback(TSDemuxContext *ctx, tsd_on_event callback);
  * @param ctx The contenxt being used to demux,
  * @param data The data to demux.
  * @param size The size of data.
- * @param code Used to store the return code of this process.
- * @return The total number of bytes parsed. The process result is stored in
- * code which on success will be TSD_OK;
+ * @param parsedSize The total number of bytes parsed will be populated in parsedSize. This will be 0 if an error is returned.
+ * @return Returns TSD_OK on success.
  */
-size_t tsd_demux(TSDemuxContext *ctx, void *data, size_t size, TSDCode *code);
+TSDCode tsd_demux(TSDemuxContext *ctx, void *data, size_t size, size_t *parsedSize);
 
 /**
  * Ends the Demuxxing process.
@@ -1567,5 +1574,11 @@ TSDCode tsd_parse_descriptor_fmx_buffer_size(const uint8_t *data,
 TSDCode tsd_parse_descriptor_multiplex_buffer(const uint8_t *data,
         size_t size,
         TSDDescriptorMultiplexBuffer *desc);
+
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif // TS_DEMUX_H
